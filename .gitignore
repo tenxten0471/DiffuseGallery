@@ -1,0 +1,4 @@
+env
+web/history/
+web/strage/
+*.json
