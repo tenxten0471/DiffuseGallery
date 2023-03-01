@@ -65,21 +65,15 @@ class File:
 		if data is not None:
 			self.data = data
 		_, ext = os.path.splitext(self.path)
-		# if os.path.exists(self.path):
 		with open(self.path, 'wt') as f:
 			if ext == '.json':
 				json.dump(self.data, f, ensure_ascii=False, indent = 2)
 			else:
 				f.write(self.data)
-		# else:
-		# 	raise Exception('file not found')
 	
 	def __getitem__(self, item):
 		return self.data[item]
 
-
-def instance_method_wrapper(instance, method, *arg, **kwargs):
-    instance.my_method(*arg, **kwargs)
 
 def window_alert(window,text):
 	window.evaluate_js(
@@ -153,26 +147,9 @@ class Api:
 		def _error_callback(e):
 			window_alert(self.window,e)
 			
-		# is_terminated = self.gen_process_terminate()
-		
-		# if is_terminated:
 		self.generator.generate(**{'generate_config' : generate_config, 'callback' : _callback, 'error_callback' : _error_callback})
-			# self.gen_process = Process(target=generate, kwargs={'generate_config' : generate_config,})
-			# self.gen_process = Process(target=self.generator.generate, kwargs={'generate_config' : generate_config, 'callback' : self._callback, 'error_callback' : self._error_callback})
-			# self.gen_process = Process(target=functools.partial(self.generator.generate,**{'generate_config' : generate_config, 'callback' : callback, 'error_callback' : error_callback}))
-			# self.gen_process.start()
-			# images = self.generator.generate()
-		# else:
-		# 	window_alert(self.window,'生成を中止しました')
+		
 		self.gen_process = False
-	
-	# def gen_process_terminate(self):
-	# 	if self.gen_process is not None:
-	# 		is_terminate = window_confirm(self.window, '現在の生成プロセスを終了しますか？')
-	# 		if is_terminate:
-	# 			self.gen_process.terminate()
-	# 		return is_terminate
-	# 	return True
 	
 	def image_show(self, image):
 		path = image['path']
@@ -223,8 +200,7 @@ class Api:
 class WebApp:
 	def __init__(self,):
 
-		model_dir = 'D:/Users/kenni/Documents/imageGeneration'
-		model = os.path.join(model_dir, "AbyssOrangeMix3")
+		model = 'runwayml/stable-diffusion-v1-5'
 
 		self.config = File('config.json',default = {
 			'strage'    : 'strage',
@@ -256,7 +232,6 @@ class WebApp:
 			},
 		})
 		
-		# self.generator = Generator(self.config['model_list'][self.config['default_model']]['model_id'], self.config['default_device'])
 		self.generator = Generator(self.config['model_list']['models'][self.config['model_list']['selected']]['model_id'], self.config['scheduler'], self.config['device'])
 
 		self.api = Api(None, self.generator, self.config, self.generate_config)
@@ -270,31 +245,16 @@ class WebApp:
 
 class Generator:
 	def __init__(self, model_id, scheduler, device):
-		# unet = UNet2DConditionModel.from_pretrained(model)
-		# vae = AutoencoderKL.from_pretrained(os.path.join(model_dir, "OrangeMixs/vae"))
-		# device = "cuda"
 		self.model_id = model_id
 		self.scheduler = scheduler
 		self.pipe = None
 		self.device = device
-		# self.load(self.model_id)
 
 	def load(self):
 		global schedulers
 		scheduler = schedulers[self.scheduler].from_pretrained(self.model_id, subfolder="scheduler")
 		self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16).to(self.device)
-		# self.pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, torch_dtype=torch.float16).to(self.device) 
-		# pipe = StableDiffusionPipeline.from_pretrained(model, vae=vae)
-		# model_id = "WarriorMama777/AbyssOrangeMix2"
-		# pipe = StableDiffusionPipeline.from_pretrained(model_id).to(device)
-		# def null_safety(images, **kwargs):
-		#     return images, False
-		# pipe.safety_checker = null_safety
-		# pipe = pipe
-
-# def generate(generate_config = {'prompt':'girl'},):
-# 	print(generate_config)
-# 	print(callback)
+		
 
 	def generate(self, generate_config = {'prompt':'girl'}, callback = lambda images:images, error_callback = lambda e:print(e)):
 		
