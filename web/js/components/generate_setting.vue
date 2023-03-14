@@ -6,6 +6,7 @@
 			<select v-model="models.selected">
 				<option v-for="v,k in models.models" :value="k">{{ k }}</option>
 			</select>
+			<!-- <floating_button button_text="add" @click="add_model"></floating_button> -->
 		</div>
 		<div class="container">
 			<a>scheduler :  </a>

@@ -57,13 +57,14 @@ class File:
 		else:
 			raise Exception('file not found')
 	
-	def save(self, data = None):
+	def save(self, **kwargs):
 		dirname = os.path.dirname(self.path)
 		if not os.path.isdir(dirname) and dirname != '':
 			os.makedirs(dirname)
 
-		if data is not None:
-			self.data = data
+		# if data is not None:
+		# 	self.data = data
+		self.data.update(**kwargs)
 		_, ext = os.path.splitext(self.path)
 		with open(self.path, 'wt') as f:
 			if ext == '.json':
@@ -126,7 +127,11 @@ class Api:
 			print(images, generate_config)
 			dirname = datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')
 			os.makedirs(os.path.join('web',self.config['history'], dirname))
-			File(os.path.join(self.config['history'], dirname, 'generate_config.json', default = generate_config))
+			# del generate_config['callback']
+			try:
+				File(os.path.join(self.config['history'], dirname, 'generate_config.json', default = generate_config))
+			except Exception as e:
+				window_alert(self.window, e)
 			image_data = []
 			for i,image in enumerate(images):
 				print(dirname)
@@ -143,6 +148,7 @@ class Api:
 			generated_images_update_func({})
 			""".format(image_data)
 			)
+			print('image_data:',image_data)
 
 		def _error_callback(e):
 			window_alert(self.window,e)
@@ -175,11 +181,12 @@ class Api:
 		print(model_key,' : ',scheduler)
 		self.config.data['model_list']['selected'] = model_key
 		self.config.data['scheduler'] = scheduler
+		self.config.save()
 		self.generator = Generator(self.config['model_list']['models'][model_key]['model_id'], scheduler, self.config['device'])
 
 	def get_generate_config(self, config_key = None):
 		if config_key is not None:
-			self.generate_config.data['selected'] = config_key
+			self.generate_config.save(selected = config_key)
 		return self.generate_config['configs'][self.generate_config['selected']]
 	
 	def get_config_data(self):
@@ -251,10 +258,15 @@ class Generator:
 		self.device = device
 
 	def load(self):
-		global schedulers
-		scheduler = schedulers[self.scheduler].from_pretrained(self.model_id, subfolder="scheduler")
-		self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16).to(self.device)
-		
+		try:
+			global schedulers
+			scheduler = schedulers[self.scheduler].from_pretrained(self.model_id, subfolder="scheduler")
+			self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16, safety_checker=None).to(self.device)
+		except Exception as e:
+			print(e)
+		# def null_safety(images, **kwargs):
+		# 	return images, False
+		# self.pipe.safety_checker = null_safety
 
 	def generate(self, generate_config = {'prompt':'girl'}, callback = lambda images:images, error_callback = lambda e:print(e)):
 		

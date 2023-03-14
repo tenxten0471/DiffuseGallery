@@ -16,7 +16,7 @@
 			</template>
 			<template #components>
 				<div class="menu_components">
-					<floating_button button_text="history viewer" @click="switch_history"></floating_button>
+					<!-- <floating_button button_text="history viewer" @click="switch_history"></floating_button> -->
 					<floating_button button_text="delete_history" @click="delete_history"></floating_button>
 				</div>
 			</template>
